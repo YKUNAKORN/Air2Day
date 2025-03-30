@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getAirQualityForProvinces } from './services/airQualityService';
 import Contact from './Contact';
+import About from './About'; // Import the new About page
+import More from './More'; // Import the More component
 import './App.css';
 
 const provinces = [
@@ -86,6 +88,16 @@ function Home() {
   const [airQualityData, setAirQualityData] = useState([]);
   const [error, setError] = useState(null);
 
+  const formatDateTime = () => {
+    const now = new Date();
+    const day = now.getDate();
+    const weekday = now.toLocaleDateString('en-GB', { weekday: 'long' });
+    const month = now.toLocaleDateString('en-GB', { month: 'short' });
+    const year = now.getFullYear();
+    const time = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+    return `Data updated : ${day} ${weekday} ${month} ${year} ${time}`;
+  };
+
   useEffect(() => {
     const fetchAirQuality = async () => {
       try {
@@ -93,7 +105,7 @@ function Home() {
         setAirQualityData(data);
       } catch (err) {
         console.error('Error in App:', err);
-        setError(err.response?.data?.message || 'Failed to fetch air quality data');
+        setError('Failed to fetch air quality data. Please try again later.');
       }
     };
 
@@ -102,12 +114,13 @@ function Home() {
 
   return (
     <main>
-      <h2>PM2.5 Report</h2>
+      <h2>AQI Report</h2>
+      <p className='DateTime'>{formatDateTime()}</p>
       {error && <p className="error">{error}</p>}
       <table className="air-quality-table">
         <thead>
           <tr>
-            <th>#</th>
+            <th>No.</th>
             <th>Province</th>
             <th>PM2.5</th>
             <th>PM10</th>
@@ -118,12 +131,23 @@ function Home() {
             <tr key={item.province}>
               <td>{index + 1}</td>
               <td>{item.province}</td>
-              <td>{item.data.list[0].components.pm2_5} µg/m³</td>
-              <td>{item.data.list[0].components.pm10} µg/m³</td>
+              <td>
+                {item.data
+                  ? `${item.data.list[0].components.pm2_5} µg/m³`
+                  : item.error || 'N/A'}
+              </td>
+              <td>
+                {item.data
+                  ? `${item.data.list[0].components.pm10} µg/m³`
+                  : item.error || 'N/A'}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <footer>
+        © 2025 Air2Day Air Quality, ALL RIGHT RESERVED
+      </footer>
     </main>
   );
 }
@@ -136,11 +160,15 @@ function App() {
         <nav>
           <Link to="/">Home</Link>
           <Link to="/contact">Contact</Link>
+          <Link to="/about">About</Link>
+          <Link to="/more">More</Link>
         </nav>
       </header>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/more" element={<More />} /> 
       </Routes>
     </Router>
   );
